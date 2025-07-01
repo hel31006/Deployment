@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>New Clinic Entry</title>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    fieldset { margin-bottom: 30px; border: 1px solid #ccc; padding: 15px; }
+    legend { font-weight: bold; }
+    label { display: inline-block; width: 180px; margin-top: 5px; }
+    input, select, textarea { width: 300px; margin-bottom: 10px; padding: 5px; }
+    h2 { color: #2c3e50; }
+    button {
+      padding: 10px 20px;
+      background-color: #3498db;
+      color: white;
+      border: none;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    button:hover {
+      background-color: #2980b9;
+    }
+    .transcription {
+      background-color: #f9f9f9;
+      font-size: 0.9em;
+      margin-bottom: 15px;
+      padding: 10px;
+      border-left: 4px solid #ccc;
+    }
+  </style>
+</head>
+<body>
+
+<div class="alert alert-warning text-center" role="alert">
+  ⚠️ No previous entries found. Please fill the form to add new details or register a new clinic.
+</div>
+
+<h2>🆕 Complete New Clinic and Interaction Records</h2>
+
+<form method="POST" action="{{ url_for('submit_new_clinics') }}">
+  {% for clinic in new_clients %}
+  <fieldset>
+    <legend>New Clinic {{ loop.index }}</legend>
+
+    <div class="transcription">
+      <label><strong>Transcription Reference:</strong></label><br>
+      <textarea rows="4" readonly>{{ clinic.transcription }}</textarea>
+    </div>
+
+    <h4>Clinic Information</h4>
+    <label>Clinic Name:</label>
+    <input name="clinic_name_{{ loop.index }}" value="{{ clinic.Clinic_Name or '' }}" required><br>
+
+    <label>Clinic Type:</label>
+    <select name="clinic_type_{{ loop.index }}">
+      <option value="Emergency">Emergency</option>
+      <option value="General">General</option>
+      <option value="Specialty">Specialty</option>
+    </select><br>
+
+    <label>Industry:</label>
+    <select name="industry_{{ loop.index }}">
+      <option value="Animal Hospital">Animal Hospital</option>
+      <option value="Veterinary">Veterinary</option>
+      <option value="Pet Grooming">Pet Grooming</option>
+    </select><br>
+
+    <label>Clinic Address:</label>
+    <input name="address_{{ loop.index }}" value="{{ clinic.Clinic_Address or '' }}"><br>
+
+    <label>Region:</label>
+    <input name="region_{{ loop.index }}" value="{{ clinic.Region or '' }}"><br>
+
+    <label>Parent Company:</label>
+    <input name="parent_company_{{ loop.index }}" value="{{ clinic.Parent_Company or '' }}"><br>
+
+    <label>Contact Name:</label>
+    <input name="contact_name_{{ loop.index }}" value="{{ clinic.Contact_Name or '' }}"><br>
+
+    <h4>CRM Interaction Information</h4>
+    <label>Rep Name:</label>
+    <input name="rep_name_{{ loop.index }}" value="{{ clinic.Rep_Name or '' }}" required><br>
+
+
+    <label>Product Name:</label>
+    <input list="product-options" name="product_name_{{ loop.index }}" id="product_name_{{ loop.index }}" value="{{ clinic.Product_Interest or '' }}"><br>
+
+    <label>Interaction Date:</label>
+    <input type="date" name="interaction_date_{{ loop.index }}"><br>
+
+    <label>Follow Up:</label>
+    <select name="follow_up_{{ loop.index }}">
+      <option value="Yes" {% if clinic.Follow_Up == 'Yes' %}selected{% endif %}>Yes</option>
+      <option value="No" {% if clinic.Follow_Up == 'No' %}selected{% endif %}>No</option>
+    </select><br>
+
+    <label>Samples Given:</label>
+    <select name="samples_given_{{ loop.index }}">
+      <option value="Yes" {% if clinic.Samples_Given == 'Yes' %}selected{% endif %}>Yes</option>
+      <option value="No" {% if clinic.Samples_Given == 'No' %}selected{% endif %}>No</option>
+    </select><br>
+
+    <label>Status:</label>
+    <select name="status_{{ loop.index }}">
+      <option value="New" {% if clinic.Status == 'New' %}selected{% endif %}>New</option>
+      <option value="Working" {% if clinic.Status == 'Working' %}selected{% endif %}>Working</option>
+      <option value="Closed - Not Converted" {% if clinic.Status == 'Closed - Not Converted' %}selected{% endif %}>Closed - Not Converted</option>
+      <option value="Closed - Converted" {% if clinic.Status == 'Closed - Converted' %}selected{% endif %}>Closed - Converted</option>
+    </select><br>
+
+    <label>Lead Source:</label>
+    <select name="lead_source_{{ loop.index }}">
+      <option value="Referral">Referral</option>
+      <option value="Web Form">Web Form</option>
+      <option value="Trade Show">Trade Show</option>
+      <option value="Email Campaign">Email Campaign</option>
+      <option value="Phone Inquiry">Phone Inquiry</option>
+    </select><br>
+
+    <label>Last Contacted:</label>
+    <input type="date" name="last_contacted_{{ loop.index }}"><br>
+
+    <label>Additional Notes:</label>
+    <input name="additional_notes_{{ loop.index }}" value="{{ clinic.Additional_Notes or '' }}"><br>
+  </fieldset>
+  {% endfor %}
+
+  <input type="hidden" name="count" value="{{ new_clients | length }}">
+  <button type="submit">✅ Submit All New Clinics</button>
+</form>
+
+
+<datalist id="product-options"></datalist>
+
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  fetch("/get_product_list")
+    .then(response => response.json())
+    .then(data => {
+      const datalist = document.getElementById("product-options");
+      datalist.innerHTML = "";
+      data.forEach(name => {
+        const option = document.createElement("option");
+        option.value = name;
+        datalist.appendChild(option);
+      });
+    });
+});
+</script>
+
+</body>
+</html>

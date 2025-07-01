@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Upload Audio</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background-color: #f9f9f9;
+    }
+
+    .container {
+      text-align: center;
+      padding: 30px;
+      border: 1px solid #ccc;
+      border-radius: 12px;
+      box-shadow: 0px 0px 12px rgba(0, 0, 0, 0.1);
+      background: white;
+      width: 400px;
+    }
+
+    .custom-file-upload {
+      border: 1px solid #ccc;
+      display: inline-block;
+      padding: 10px 16px;
+      cursor: pointer;
+      margin: 10px;
+      background-color: #eee;
+      border-radius: 5px;
+    }
+
+    input[type="file"] {
+      display: none;
+    }
+
+    input[type="submit"] {
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+      background-color: #3498db;
+      color: white;
+      border: none;
+      border-radius: 5px;
+    }
+
+    input[type="submit"]:disabled {
+      background-color: #aaa;
+      cursor: not-allowed;
+    }
+
+    #file-status, #loading-status {
+      margin-top: 15px;
+      font-weight: bold;
+    }
+
+    #file-status {
+      color: #2ecc71;
+    }
+
+    #loading-status {
+      color: #e67e22;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Upload Audio Files</h2>
+    <form method="POST" enctype="multipart/form-data" id="uploadForm">
+      <label for="file-upload" class="custom-file-upload">
+        Choose Files
+      </label>
+      <input id="file-upload" type="file" name="files" multiple>
+      <br>
+      <input type="submit" value="Upload and Transcribe" id="uploadBtn">
+      <div id="file-status"></div>
+      <div id="loading-status"></div>
+    </form>
+  </div>
+
+  <script>
+    const fileInput = document.getElementById("file-upload");
+    const fileStatus = document.getElementById("file-status");
+    const uploadForm = document.getElementById("uploadForm");
+    const uploadBtn = document.getElementById("uploadBtn");
+    const loadingStatus = document.getElementById("loading-status");
+
+    fileInput.addEventListener("change", () => {
+      const files = fileInput.files;
+      if (files.length > 0) {
+        fileStatus.textContent = `✅ ${files.length} file(s) selected`;
+      } else {
+        fileStatus.textContent = "";
+      }
+    });
+
+    uploadForm.addEventListener("submit", () => {
+      uploadBtn.disabled = true;
+      uploadBtn.value = "⏳ Transcribing and extracting...";
+      loadingStatus.textContent = "Please wait while the results are being generated...";
+    });
+  </script>
+</body>
+</html>

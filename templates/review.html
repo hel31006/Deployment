@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Existing Clinic Update Confirmation</title>
+  <style>
+    table { border-collapse: collapse; width: 100%; margin-bottom: 30px; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; vertical-align: top; }
+    input, textarea, select { width: 100%; padding: 5px; }
+    h2 { color: #2c3e50; }
+    button { padding: 10px 20px; background-color: #2ecc71; color: white; border: none; cursor: pointer; }
+    .transcription { background-color: #f9f9f9; font-size: 0.9em; margin-bottom: 10px; border-left: 4px solid #ccc; padding: 10px; }
+    .fuzzy-warning { background-color: #fef9e7; padding: 10px; margin-bottom: 10px; border-left: 4px solid #e67e22; font-weight: bold; }
+  </style>
+</head>
+<body>
+
+  <h2>✅ Existing Clinic Update Confirmation</h2>
+
+  <form method="POST" action="{{ url_for('submit_existing') }}">
+
+    {% for record in old_clients %}
+    <div class="transcription">
+      <strong>Transcription Reference ({{ record.filename }}):</strong><br>
+      <textarea rows="4" readonly>{{ record.transcription }}</textarea>
+    </div>
+
+    {% if record.match_type == 'fuzzy' %}
+    <div class="fuzzy-warning">
+      ⚠️ Fuzzy Match Found: "<strong>{{ record.Clinic_Name }}</strong>" may match
+      "<strong>{{ record.clinic_name_matched }}</strong>" (Score: {{ record.match_score }}).<br>
+      Please confirm:
+      <label><input type="radio" name="clinic_decision_{{ loop.index0 }}" value="existing" checked> ✅ Use matched clinic</label>
+      <label><input type="radio" name="clinic_decision_{{ loop.index0 }}" value="new"> 🆕 Treat as new clinic</label>
+    </div>
+    {% endif %}
+
+    <table>
+      <tr>
+        <th>Clinic ID</th>
+        <th>Clinic Name</th>
+        <th>Rep Name</th>
+        <th>Product Interest</th>
+        <th>Samples Given</th>
+        <th>Follow Up</th>
+        <th>Status</th>
+        <th>Lead Source</th>
+        <th>Last Contacted</th>
+        <th>Additional Notes</th>
+      </tr>
+      <tr>
+        <td><input name="clinic_id_{{ loop.index0 }}" value="{{ record.clinic_id }}" readonly></td>
+        <td><input name="clinic_name_{{ loop.index0 }}" value="{{ record.Clinic_Name }}"></td>
+        <td><input name="rep_name_{{ loop.index0 }}" value="{{ record.Rep_Name }}"></td>
+
+
+        <td>
+          <input list="product-options" name="product_interest_{{ loop.index0 }}" id="product-interest-{{ loop.index0 }}"
+                 value="{{ record.Product_Interest }}" class="form-control">
+        </td>
+
+        <td>
+          <select name="samples_given_{{ loop.index0 }}">
+            <option value="Yes" {% if record.Samples_Given == 'Yes' %}selected{% endif %}>Yes</option>
+            <option value="No" {% if record.Samples_Given == 'No' %}selected{% endif %}>No</option>
+          </select>
+        </td>
+        <td>
+          <select name="follow_up_{{ loop.index0 }}">
+            <option value="Yes" {% if record.Follow_Up == 'Yes' %}selected{% endif %}>Yes</option>
+            <option value="No" {% if record.Follow_Up == 'No' %}selected{% endif %}>No</option>
+          </select>
+        </td>
+        <td>
+          <select name="status_{{ loop.index0 }}">
+            <option value="New" {% if record.Status == 'New' %}selected{% endif %}>New</option>
+            <option value="Working" {% if record.Status == 'Working' %}selected{% endif %}>Working</option>
+            <option value="Closed - Not Converted" {% if record.Status == 'Closed - Not Converted' %}selected{% endif %}>Closed - Not Converted</option>
+            <option value="Closed - Converted" {% if record.Status == 'Closed - Converted' %}selected{% endif %}>Closed - Converted</option>
+          </select>
+        </td>
+        <td>
+          <select name="lead_source_{{ loop.index0 }}">
+            <option value="Referral" {% if record.Lead_Source == 'Referral' %}selected{% endif %}>Referral</option>
+            <option value="Web Form" {% if record.Lead_Source == 'Web Form' %}selected{% endif %}>Web Form</option>
+            <option value="Trade Show" {% if record.Lead_Source == 'Trade Show' %}selected{% endif %}>Trade Show</option>
+            <option value="Email Campaign" {% if record.Lead_Source == 'Email Campaign' %}selected{% endif %}>Email Campaign</option>
+            <option value="Phone Inquiry" {% if record.Lead_Source == 'Phone Inquiry' %}selected{% endif %}>Phone Inquiry</option>
+          </select>
+        </td>
+        <td><input type="date" name="last_contacted_{{ loop.index0 }}" value="{{ record.Last_Contacted[:10] if record.Last_Contacted else '' }}"></td>
+        <td><input name="additional_notes_{{ loop.index0 }}" value="{{ record.Additional_Notes or '' }}"></td>
+      </tr>
+    </table>
+    {% endfor %}
+
+    {% if new_clients %}
+    <h2>🆕 New Clinics Detected ({{ new_clients | length }})</h2>
+    {% for client in new_clients %}
+    <div class="transcription">
+      <strong>Transcription Reference ({{ client.filename }}):</strong><br>
+      <textarea rows="4" readonly>{{ client.transcription }}</textarea>
+    </div>
+    <table>
+      <tr>
+        <th>Clinic Name</th>
+        <th>Rep Name</th>
+        <th>Product Interest</th>
+        <th>Samples Given</th>
+        <th>Follow Up</th>
+        <th>Status</th>
+      </tr>
+      <tr>
+        <td><input value="{{ client.Clinic_Name }}" readonly></td>
+        <td><input value="{{ client.Rep_Name }}" readonly></td>
+        <td><input value="{{ client.Product_Interest }}" readonly></td>
+        <td><input value="{{ client.Samples_Given }}" readonly></td>
+        <td><input value="{{ client.Follow_Up }}" readonly></td>
+        <td><input value="{{ client.Status }}" readonly></td>
+      </tr>
+    </table>
+    {% endfor %}
+    {% else %}
+    <p>✅ No new clinics detected.</p>
+    {% endif %}
+
+    <input type="hidden" name="count" value="{{ old_clients | length }}">
+    <input type="hidden" name="new_clients_json" value='{{ new_clients | tojson | safe }}'>
+    <button type="submit">Submit Existing Clinic ➡️ Go To The New Clinic</button>
+  </form>
+
+
+  <datalist id="product-options"></datalist>
+
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      fetch("/get_product_list")
+        .then(response => response.json())
+        .then(data => {
+          const datalist = document.getElementById("product-options");
+          datalist.innerHTML = "";
+          data.forEach(name => {
+            const option = document.createElement("option");
+            option.value = name;
+            datalist.appendChild(option);
+          });
+        });
+    });
+  </script>
+
+</body>
+</html>
