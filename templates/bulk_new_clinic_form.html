@@ -2,138 +2,284 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>New Clinic Entry</title>
-  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <title>Create New Clinic Records</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter&display=swap" rel="stylesheet">
   <style>
-    body { font-family: Arial, sans-serif; padding: 20px; }
-    fieldset { margin-bottom: 30px; border: 1px solid #ccc; padding: 15px; }
-    legend { font-weight: bold; }
-    label { display: inline-block; width: 180px; margin-top: 5px; }
-    input, select, textarea { width: 300px; margin-bottom: 10px; padding: 5px; }
-    h2 { color: #2c3e50; }
-    button {
-      padding: 10px 20px;
-      background-color: #3498db;
+    body {
+      font-family: 'Inter', sans-serif;
+      padding: 20px;
+      background-color: #f7f8fa;
+      color: #333;
+    }
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    fieldset {
+      margin-bottom: 30px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 25px;
+      background-color: #ffffff;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+    legend {
+      font-weight: 600;
+      color: #e67e22;
+      font-size: 1.3em;
+      padding: 0 10px;
+      width: auto;
+    }
+    h2 {
+      color: #e67e22;
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    .form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px 25px; /* Row gap and column gap */
+    }
+    .form-group {
+        display: flex;
+        flex-direction: column;
+    }
+    .form-group.full-width {
+        grid-column: 1 / -1;
+    }
+    .form-group label {
+      margin-bottom: 5px;
+      font-weight: 500;
+      color: #555;
+    }
+    .form-group input, .form-group select, .form-group textarea {
+      width: 100%;
+      padding: 8px 10px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 14px;
+      box-sizing: border-box;
+    }
+    .transcription-box {
+      background-color: #fff8f0;
+      font-size: 14px;
+      margin-bottom: 10px;
+      padding: 15px;
+      border-left: 4px solid #e67e22;
+      border-radius: 4px;
+      grid-column: 1 / -1;
+    }
+    .transcription-box textarea {
+        background-color: transparent;
+        border: none;
+        padding: 0;
+        width: 100%;
+        box-sizing: border-box;
+        font-family: monospace;
+    }
+    .notice-bar {
+      text-align: center;
+      padding: 10px;
+      background-color: #fff4e6;
+      color: #d35400;
+      border: 1px solid #ffcc80;
+      border-radius: 6px;
+      margin-bottom: 25px;
+    }
+    .confirmation-section {
+      display: flex;
+      flex-direction: row;
+      justify-content: flex-end;
+      align-items: center;
+      margin-top: 30px;
+      padding: 20px;
+      background-color: #ffffff;
+      border: 1px solid #eee;
+      border-radius: 8px;
+    }
+    .confirmation-checkbox {
+      display: flex;
+      align-items: center;
+      margin-right: 20px;
+      font-weight: 500;
+      color: #333;
+    }
+    .confirmation-checkbox input[type="checkbox"] {
+      width: auto;
+      margin-right: 8px;
+      transform: scale(1.1);
+    }
+    .submit-button {
+      padding: 10px 25px;
+      background-color: #e67e22;
       color: white;
       border: none;
-      cursor: pointer;
+      border-radius: 6px;
       font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
     }
-    button:hover {
-      background-color: #2980b9;
+    .submit-button:hover:not(:disabled) {
+      background-color: #d35400;
     }
-    .transcription {
-      background-color: #f9f9f9;
-      font-size: 0.9em;
-      margin-bottom: 15px;
-      padding: 10px;
-      border-left: 4px solid #ccc;
+    .submit-button:disabled {
+        background-color: #cccccc;
+        cursor: not-allowed;
     }
   </style>
 </head>
 <body>
 
-<div class="alert alert-warning text-center" role="alert">
-  ⚠️ No previous entries found. Please fill the form to add new details or register a new clinic.
+<div class="container">
+  {% if not new_clients %}
+  <div class="notice-bar">
+    Notice: There are no new clinics to create.
+  </div>
+  {% endif %}
+
+  <h2>Create New Clinic and Interaction Records</h2>
+
+  <form method="POST" action="{{ url_for('submit_new_clinics') }}">
+    {% for clinic in new_clients %}
+    <fieldset>
+      <legend>New Clinic Record {{ loop.index }}</legend>
+
+      <div class="form-grid">
+        <div class="transcription-box">
+          <label><strong>Transcription Reference:</strong></label>
+          <textarea rows="3" readonly>{{ clinic.transcription }}</textarea>
+        </div>
+
+        <input type="hidden" name="transcription_{{ loop.index0 }}" value="{{ clinic.transcription }}">
+        <input type="hidden" name="filename_{{ loop.index0 }}" value="{{ clinic.filename }}">
+
+        <div class="form-group">
+          <label>Clinic Name:</label>
+          <input name="clinic_name_{{ loop.index0 }}" value="{{ clinic.Clinic_Name or '' }}" required>
+        </div>
+
+        <div class="form-group">
+          <label>Contact Name:</label>
+          <input name="contact_name_{{ loop.index0 }}" value="{{ clinic.Contact_Name or '' }}">
+        </div>
+
+        <div class="form-group">
+          <label>Clinic Type:</label>
+          <select name="clinic_type_{{ loop.index0 }}">
+            <option value="Emergency" {% if clinic.Clinic_Type == 'Emergency' %}selected{% endif %}>Emergency</option>
+            <option value="General" {% if clinic.Clinic_Type == 'General' or not clinic.Clinic_Type %}selected{% endif %}>General</option>
+            <option value="Specialty" {% if clinic.Clinic_Type == 'Specialty' %}selected{% endif %}>Specialty</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Industry:</label>
+          <select name="industry_{{ loop.index0 }}">
+            <option value="Animal Hospital" {% if clinic.Industry == 'Animal Hospital' %}selected{% endif %}>Animal Hospital</option>
+            <option value="Veterinary" {% if clinic.Industry == 'Veterinary' or not clinic.Industry %}selected{% endif %}>Veterinary</option>
+            <option value="Pet Grooming" {% if clinic.Industry == 'Pet Grooming' %}selected{% endif %}>Pet Grooming</option>
+          </select>
+        </div>
+
+        <div class="form-group full-width">
+          <label>Clinic Address:</label>
+          <input name="address_{{ loop.index0 }}" value="{{ clinic.Clinic_Address or '' }}">
+        </div>
+
+        <div class="form-group">
+          <label>Region:</label>
+          <input name="region_{{ loop.index0 }}" value="{{ clinic.Region or '' }}">
+        </div>
+
+        <div class="form-group">
+          <label>Parent Company:</label>
+          <input name="parent_company_{{ loop.index0 }}" value="{{ clinic.Parent_Company or '' }}">
+        </div>
+
+        <div class="form-group">
+            <label>Rep Name:</label>
+            <input name="rep_name_{{ loop.index0 }}" list="rep-options" value="{{ clinic.Rep_Name or '' }}" required>
+        </div>
+
+        <div class="form-group">
+            <label>Product Interest:</label>
+            <input list="product-options" name="product_interest_{{ loop.index0 }}" value="{{ clinic.Product_Interest or '' }}">
+        </div>
+
+        <div class="form-group">
+          <label>Interaction Date:</label>
+          <input type="date" name="interaction_date_{{ loop.index0 }}" value="{{ clinic.Interaction_Date[:10] if clinic.Interaction_Date }}">
+        </div>
+
+        <div class="form-group">
+          <label>Last Contacted:</label>
+          <input type="date" name="last_contacted_{{ loop.index0 }}" value="{{ clinic.Last_Contacted[:10] if clinic.Last_Contacted }}">
+        </div>
+
+        <div class="form-group">
+          <label>Follow Up:</label>
+          <select name="follow_up_{{ loop.index0 }}">
+            <option value="Yes" {% if clinic.Follow_Up == "Yes" %}selected{% endif %}>Yes</option>
+            <option value="No" {% if clinic.Follow_Up == "No" %}selected{% endif %}>No</option>
+            <option value="Unknown" {% if clinic.Follow_Up == "Unknown" %}selected{% endif %}>Unknown</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Samples Given:</label>
+          <select name="samples_given_{{ loop.index0 }}">
+            <option value="Yes" {% if clinic.Samples_Given == "Yes" %}selected{% endif %}>Yes</option>
+            <option value="No" {% if clinic.Samples_Given == "No" %}selected{% endif %}>No</option>
+            <option value="Unknown" {% if clinic.Samples_Given == "Unknown" %}selected{% endif %}>Unknown</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Status:</label>
+          <select name="status_{{ loop.index0 }}">
+            <option value="New" {% if clinic.Status == "New" %}selected{% endif %}>New</option>
+            <option value="Working" {% if clinic.Status == "Working" %}selected{% endif %}>Working</option>
+            <option value="Closed - Not Converted" {% if clinic.Status == "Closed - Not Converted" %}selected{% endif %}>Closed - Not Converted</option>
+            <option value="Closed - Converted" {% if clinic.Status == "Closed - Converted" %}selected{% endif %}>Closed - Converted</option>
+            <option value="Unknown" {% if clinic.Status == "Unknown" %}selected{% endif %}>Unknown</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Lead Source:</label>
+          <select name="lead_source_{{ loop.index0 }}">
+            <option value="Web Form" {% if clinic.Lead_Source == "Web Form" %}selected{% endif %}>Web Form</option>
+            <option value="Referral" {% if clinic.Lead_Source == "Referral" %}selected{% endif %}>Referral</option>
+            <option value="Phone Inquiry" {% if clinic.Lead_Source == "Phone Inquiry" %}selected{% endif %}>Phone Inquiry</option>
+            <option value="Trade Show" {% if clinic.Lead_Source == "Trade Show" %}selected{% endif %}>Trade Show</option>
+            <option value="Email Campaign" {% if clinic.Lead_Source == "Email Campaign" %}selected{% endif %}>Email Campaign</option>
+            <option value="Unknown" {% if clinic.Lead_Source == "Unknown" %}selected{% endif %}>Unknown</option>
+          </select>
+        </div>
+
+        <div class="form-group full-width">
+            <label>Additional Notes:</label>
+            <textarea name="additional_notes_{{ loop.index0 }}" rows="2">{{ clinic.Additional_Notes or '' }}</textarea>
+        </div>
+      </div>
+    </fieldset>
+    {% endfor %}
+
+    <input type="hidden" name="count" value="{{ new_clients | length }}">
+
+    <div class="confirmation-section">
+      <div class="confirmation-checkbox">
+        <input type="checkbox" id="confirmationCheckbox">
+        <label for="confirmationCheckbox">I confirm that all new clinic details are correct and ready to submit.</label>
+      </div>
+      <button type="submit" id="submitBtn" class="submit-button" disabled>Submit All New Clinics</button>
+    </div>
+  </form>
 </div>
 
-<h2>🆕 Complete New Clinic and Interaction Records</h2>
-
-<form method="POST" action="{{ url_for('submit_new_clinics') }}">
-  {% for clinic in new_clients %}
-  <fieldset>
-    <legend>New Clinic {{ loop.index }}</legend>
-
-    <div class="transcription">
-      <label><strong>Transcription Reference:</strong></label><br>
-      <textarea rows="4" readonly>{{ clinic.transcription }}</textarea>
-    </div>
-
-    <h4>Clinic Information</h4>
-    <label>Clinic Name:</label>
-    <input name="clinic_name_{{ loop.index }}" value="{{ clinic.Clinic_Name or '' }}" required><br>
-
-    <label>Clinic Type:</label>
-    <select name="clinic_type_{{ loop.index }}">
-      <option value="Emergency">Emergency</option>
-      <option value="General">General</option>
-      <option value="Specialty">Specialty</option>
-    </select><br>
-
-    <label>Industry:</label>
-    <select name="industry_{{ loop.index }}">
-      <option value="Animal Hospital">Animal Hospital</option>
-      <option value="Veterinary">Veterinary</option>
-      <option value="Pet Grooming">Pet Grooming</option>
-    </select><br>
-
-    <label>Clinic Address:</label>
-    <input name="address_{{ loop.index }}" value="{{ clinic.Clinic_Address or '' }}"><br>
-
-    <label>Region:</label>
-    <input name="region_{{ loop.index }}" value="{{ clinic.Region or '' }}"><br>
-
-    <label>Parent Company:</label>
-    <input name="parent_company_{{ loop.index }}" value="{{ clinic.Parent_Company or '' }}"><br>
-
-    <label>Contact Name:</label>
-    <input name="contact_name_{{ loop.index }}" value="{{ clinic.Contact_Name or '' }}"><br>
-
-    <h4>CRM Interaction Information</h4>
-    <label>Rep Name:</label>
-    <input name="rep_name_{{ loop.index }}" value="{{ clinic.Rep_Name or '' }}" required><br>
-
-
-    <label>Product Name:</label>
-    <input list="product-options" name="product_name_{{ loop.index }}" id="product_name_{{ loop.index }}" value="{{ clinic.Product_Interest or '' }}"><br>
-
-    <label>Interaction Date:</label>
-    <input type="date" name="interaction_date_{{ loop.index }}"><br>
-
-    <label>Follow Up:</label>
-    <select name="follow_up_{{ loop.index }}">
-      <option value="Yes" {% if clinic.Follow_Up == 'Yes' %}selected{% endif %}>Yes</option>
-      <option value="No" {% if clinic.Follow_Up == 'No' %}selected{% endif %}>No</option>
-    </select><br>
-
-    <label>Samples Given:</label>
-    <select name="samples_given_{{ loop.index }}">
-      <option value="Yes" {% if clinic.Samples_Given == 'Yes' %}selected{% endif %}>Yes</option>
-      <option value="No" {% if clinic.Samples_Given == 'No' %}selected{% endif %}>No</option>
-    </select><br>
-
-    <label>Status:</label>
-    <select name="status_{{ loop.index }}">
-      <option value="New" {% if clinic.Status == 'New' %}selected{% endif %}>New</option>
-      <option value="Working" {% if clinic.Status == 'Working' %}selected{% endif %}>Working</option>
-      <option value="Closed - Not Converted" {% if clinic.Status == 'Closed - Not Converted' %}selected{% endif %}>Closed - Not Converted</option>
-      <option value="Closed - Converted" {% if clinic.Status == 'Closed - Converted' %}selected{% endif %}>Closed - Converted</option>
-    </select><br>
-
-    <label>Lead Source:</label>
-    <select name="lead_source_{{ loop.index }}">
-      <option value="Referral">Referral</option>
-      <option value="Web Form">Web Form</option>
-      <option value="Trade Show">Trade Show</option>
-      <option value="Email Campaign">Email Campaign</option>
-      <option value="Phone Inquiry">Phone Inquiry</option>
-    </select><br>
-
-    <label>Last Contacted:</label>
-    <input type="date" name="last_contacted_{{ loop.index }}"><br>
-
-    <label>Additional Notes:</label>
-    <input name="additional_notes_{{ loop.index }}" value="{{ clinic.Additional_Notes or '' }}"><br>
-  </fieldset>
-  {% endfor %}
-
-  <input type="hidden" name="count" value="{{ new_clients | length }}">
-  <button type="submit">✅ Submit All New Clinics</button>
-</form>
-
-
 <datalist id="product-options"></datalist>
-
+<datalist id="rep-options"></datalist>
 
 <script>
 document.addEventListener("DOMContentLoaded", function () {
@@ -148,6 +294,27 @@ document.addEventListener("DOMContentLoaded", function () {
         datalist.appendChild(option);
       });
     });
+
+  fetch("/get_rep_list?q=")
+    .then(response => response.json())
+    .then(repList => {
+      document.querySelectorAll(".rep-name-input").forEach(input => {
+        const index = input.dataset.index;
+        const datalist = document.getElementById(`rep-options-${index}`);
+        datalist.innerHTML = "";
+        repList.forEach(rep => {
+          const option = document.createElement("option");
+          option.value = rep;
+          datalist.appendChild(option);
+        });
+      });
+    });
+
+  const checkbox = document.getElementById("confirmationCheckbox");
+  const submitBtn = document.getElementById("submitBtn");
+  checkbox.addEventListener("change", function () {
+    submitBtn.disabled = !checkbox.checked;
+  });
 });
 </script>
 

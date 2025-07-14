@@ -1,82 +1,131 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Upload Audio</title>
+  <meta charset="UTF-8">
+  <title>Upload Audio for Transcription</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter&display=swap" rel="stylesheet">
   <style>
     body {
-      font-family: Arial, sans-serif;
+      font-family: 'Inter', sans-serif;
+      background-color: #f7f8fa;
+      color: #333;
       display: flex;
       justify-content: center;
       align-items: center;
       height: 100vh;
-      background-color: #f9f9f9;
+      margin: 0;
     }
 
     .container {
-      text-align: center;
-      padding: 30px;
-      border: 1px solid #ccc;
-      border-radius: 12px;
-      box-shadow: 0px 0px 12px rgba(0, 0, 0, 0.1);
       background: white;
-      width: 400px;
+      border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+      padding: 40px;
+      width: 100%;
+      max-width: 500px;
+      text-align: center;
     }
 
-    .custom-file-upload {
-      border: 1px solid #ccc;
+    h2 {
+      color: #e67e22;
+      margin-top: 0;
+      margin-bottom: 10px;
+      font-weight: 600;
+    }
+
+    p {
+        color: #666;
+        margin-bottom: 30px;
+    }
+
+    .upload-area {
+        border: 2px dashed #ddd;
+        border-radius: 8px;
+        padding: 30px;
+        margin-bottom: 30px;
+        background-color: #fafafa;
+        transition: border-color 0.3s, background-color 0.3s;
+    }
+
+    .upload-area:hover {
+        border-color: #ff9f43;
+        background-color: #fff8f0;
+    }
+
+    .file-input-label {
       display: inline-block;
-      padding: 10px 16px;
+      padding: 10px 20px;
       cursor: pointer;
-      margin: 10px;
-      background-color: #eee;
-      border-radius: 5px;
+      background-color: #555;
+      color: white;
+      border-radius: 6px;
+      font-weight: 500;
+      transition: background-color 0.3s ease;
+    }
+
+    .file-input-label:hover {
+      background-color: #333;
     }
 
     input[type="file"] {
       display: none;
     }
 
-    input[type="submit"] {
-      padding: 10px 20px;
-      font-size: 16px;
-      cursor: pointer;
-      background-color: #3498db;
+    .submit-button {
+      background-color: #e67e22;
       color: white;
+      width: 100%;
       border: none;
-      border-radius: 5px;
+      padding: 12px 20px;
+      border-radius: 6px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
     }
 
-    input[type="submit"]:disabled {
-      background-color: #aaa;
+    .submit-button:hover:not(:disabled) {
+      background-color: #d35400;
+    }
+
+    .submit-button:disabled {
+      background-color: #cccccc;
       cursor: not-allowed;
     }
 
-    #file-status, #loading-status {
-      margin-top: 15px;
-      font-weight: bold;
-    }
-
     #file-status {
-      color: #2ecc71;
+      margin-top: 15px;
+      color: #27ae60;
+      font-weight: 500;
+      height: 20px; /* Reserve space to prevent layout shift */
     }
 
     #loading-status {
+      margin-top: 15px;
       color: #e67e22;
+      font-weight: 500;
+      height: 20px; /* Reserve space */
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <h2>Upload Audio Files</h2>
+    <h2>CRM Voice-to-Text System</h2>
+    <p>Upload your .mp3, .wav, or .m4a files to begin.</p>
+
     <form method="POST" enctype="multipart/form-data" id="uploadForm">
-      <label for="file-upload" class="custom-file-upload">
-        Choose Files
-      </label>
-      <input id="file-upload" type="file" name="files" multiple>
-      <br>
-      <input type="submit" value="Upload and Transcribe" id="uploadBtn">
-      <div id="file-status"></div>
+
+      <div class="upload-area">
+        <label for="file-upload" class="file-input-label">
+          Choose Files
+        </label>
+        <input id="file-upload" type="file" name="files" multiple>
+        <div id="file-status"></div>
+      </div>
+
+      <input type="submit" value="Upload & Transcribe" id="uploadBtn" class="submit-button">
       <div id="loading-status"></div>
+
     </form>
   </div>
 
@@ -90,7 +139,7 @@
     fileInput.addEventListener("change", () => {
       const files = fileInput.files;
       if (files.length > 0) {
-        fileStatus.textContent = `✅ ${files.length} file(s) selected`;
+        fileStatus.textContent = `${files.length} file(s) selected`;
       } else {
         fileStatus.textContent = "";
       }
@@ -98,8 +147,8 @@
 
     uploadForm.addEventListener("submit", () => {
       uploadBtn.disabled = true;
-      uploadBtn.value = "⏳ Transcribing and extracting...";
-      loadingStatus.textContent = "Please wait while the results are being generated...";
+      uploadBtn.value = "Transcribing...";
+      loadingStatus.textContent = "Please wait, processing files...";
     });
   </script>
 </body>

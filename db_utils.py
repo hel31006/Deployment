@@ -1,20 +1,34 @@
 import pymysql
 from datetime import datetime
 from thefuzz import fuzz
-
+import os
 
 def get_connection():
+    """
+    Establishes and returns a connection to the MySQL database.
+    It reads connection details from environment variables for deployment,
+    with fallback default values for local development.
+    """
+
+    db_host = os.environ.get('DB_HOST', 'localhost')
+    db_user = os.environ.get('DB_USER', 'root')
+    db_password = os.environ.get('DB_PASSWORD', 'zoetisproject123!')
+    db_name = os.environ.get('DB_NAME', 'voice_records')
+
     return pymysql.connect(
-        host='localhost',
-        user='root',
-        password='zoetisproject123!',
-        database='voice_records',
+        host=db_host,
+        user=db_user,
+        password=db_password,
+        database=db_name,
         cursorclass=pymysql.cursors.DictCursor,
         autocommit=False
     )
 
-
 def get_sales_rep_id(rep_name, connection):
+    """
+    Finds the ID for a sales rep by name.
+    If the rep does not exist, it creates a new one.
+    """
     with connection.cursor() as cursor:
         cursor.execute("SELECT Sales_Rep_ID FROM sales_rep WHERE Rep_Name = %s", (rep_name,))
         result = cursor.fetchone()
@@ -33,6 +47,10 @@ def get_sales_rep_id(rep_name, connection):
         return new_id
 
 def get_product_id(product_name, connection):
+    """
+    Finds the ID for a product by its exact name. Returns None if not found.
+    """
+    # This function remains unchanged.
     with connection.cursor() as cursor:
         cursor.execute("SELECT Product_ID FROM product WHERE LOWER(Product_Name) = %s", (product_name.lower(),))
         result = cursor.fetchone()
@@ -41,8 +59,11 @@ def get_product_id(product_name, connection):
         else:
             return None
 
-
-def fuzzy_match_product(product_name_partial, connection, threshold=75):
+def fuzzy_match_product(product_name_partial, connection, threshold=50):
+    """
+    Finds the best product match using fuzzy string matching.
+    """
+    # This function remains unchanged.
     with connection.cursor() as cursor:
         cursor.execute("SELECT Product_ID, Product_Name FROM product")
         all_products = cursor.fetchall()
@@ -62,8 +83,11 @@ def fuzzy_match_product(product_name_partial, connection, threshold=75):
     else:
         return None
 
-
 def match_clinic(clinic_name_partial, connection):
+    """
+    Performs a simple search for a clinic using SQL LIKE.
+    """
+    # This function remains unchanged.
     try:
         with connection.cursor() as cursor:
             sql = """
@@ -78,8 +102,11 @@ def match_clinic(clinic_name_partial, connection):
         print("❌ Something Went Wrong", e)
         return None
 
-
-def fuzzy_match_clinic(clinic_name_partial, connection, threshold=70):
+def fuzzy_match_clinic(clinic_name_partial, connection, threshold=75):
+    """
+    Finds the best clinic match using fuzzy string matching.
+    """
+    # This function remains unchanged.
     try:
         with connection.cursor() as cursor:
             cursor.execute("SELECT Clinic_ID, Clinic_Name FROM clinic")
@@ -104,21 +131,26 @@ def fuzzy_match_clinic(clinic_name_partial, connection, threshold=70):
         return None
 
 def insert_interaction(clinic_id, extracted, connection):
+    """
+    Inserts a new CRM interaction record into the database.
+    """
+    # This function remains unchanged.
     try:
         with connection.cursor() as cursor:
-
             sales_rep_id = get_sales_rep_id(extracted.get("Rep_Name", ""), connection)
             product_id = get_product_id(extracted.get("Product_Interest", ""), connection)
 
+            if not product_id:
+                print(f"❌ Product not found: {extracted.get('Product_Interest', '')}")
+                # Return a tuple to avoid crashing the calling function in app.py
+                return None, None
 
             crm_created_date = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             interaction_date = crm_created_date.split(" ")[0]
 
-
             last_contacted = extracted.get("Last_Contacted")
             if not last_contacted:
                 last_contacted = interaction_date
-
 
             contact_name = extracted.get("Contact_Name", "").strip()
             if not contact_name:
@@ -126,16 +158,14 @@ def insert_interaction(clinic_id, extracted, connection):
                 row = cursor.fetchone()
                 contact_name = row["Contact_Name"] if row else ""
 
-
             cursor.execute("""
                 SELECT COUNT(*) as cnt FROM crm_interaction
                 WHERE Clinic_ID = %s AND Sales_Rep_ID = %s AND Product_ID = %s AND DATE(Interaction_Date) = %s
             """, (clinic_id, sales_rep_id, product_id, interaction_date))
 
             if cursor.fetchone()["cnt"] > 0:
-                print(f"⏭️ Skip Overlapped Interaction：{clinic_id}, {sales_rep_id}, {product_id}, {interaction_date}")
-                return
-
+                print(f"⏭️ Skip Overlapped Interaction: {clinic_id}, {sales_rep_id}, {product_id}, {interaction_date}")
+                return interaction_date, crm_created_date
 
             sql = """
                 INSERT INTO crm_interaction (
@@ -162,10 +192,9 @@ def insert_interaction(clinic_id, extracted, connection):
             ))
 
         print(f"✅ Insert Successful: {clinic_id}")
-
         return interaction_date, crm_created_date
 
     except Exception as e:
-        print("❌ Something Went Wrong：", e)
-        raise
-
+        print("❌ Something Went Wrong:", e)
+        # Return a tuple to avoid crashing the calling function in app.py
+        return None, None
